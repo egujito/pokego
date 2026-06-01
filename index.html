@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>POKÉDEX</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <header id="site-header">
+    <a href="#/" id="site-title-link">
+      <h1 id="site-title">POKÉDEX</h1>
+    </a>
+    <div id="search-container">
+      <input
+        id="search-input"
+        type="text"
+        placeholder="SEARCH..."
+        autocomplete="off"
+        spellcheck="false"
+        aria-label="Search Pokémon"
+        aria-autocomplete="list"
+        aria-controls="search-dropdown"
+      >
+      <ul id="search-dropdown" class="hidden" role="listbox" aria-label="Search results"></ul>
+    </div>
+  </header>
+
+  <main id="app">
+
+    <section id="view-pokedex" class="view hidden">
+      <div id="pokemon-grid"></div>
+      <div id="grid-sentinel"></div>
+    </section>
+
+    <section id="view-detail" class="view hidden">
+      <button id="back-btn" aria-label="Back to Pokédex">← BACK</button>
+      <div id="detail-content"></div>
+    </section>
+
+    <div id="loading-overlay" class="hidden" aria-live="polite">
+      <div id="loading-spinner">
+        <span>LOADING...</span>
+      </div>
+    </div>
+
+    <div id="error-banner" class="hidden" role="alert"></div>
+
+  </main>
+
+  <script src="app.js"></script>
+</body>
+</html>
