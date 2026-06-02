@@ -685,6 +685,127 @@ img {
 }
 
 /* ============================================================
+   MEGA EVOLUTIONS
+   ============================================================ */
+.mega-section {
+  border-color: #b8960a !important;
+  box-shadow:
+    inset 2px 2px 0 #fff8d0,
+    inset -2px -2px 0 #8b6a00,
+    3px 3px 0 #b8960a !important;
+}
+
+.mega-section h3 {
+  color: #b8960a !important;
+}
+
+.mega-chip {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  cursor: pointer;
+  padding: 10px 8px;
+  min-height: 44px;
+  background: #fffae0;
+  border: 2px solid #b8960a;
+  box-shadow: 2px 2px 0 #b8960a;
+  transition: transform 0.08s, background 0.08s;
+  min-width: 72px;
+  touch-action: manipulation;
+}
+
+.mega-chip:hover,
+.mega-chip:active {
+  background: #ffe066;
+  transform: translateY(-2px);
+  box-shadow: 2px 4px 0 #b8960a;
+}
+
+.mega-chip img { width: 56px; height: 56px; }
+
+.mega-chip p {
+  font-size: 0.35rem;
+  text-align: center;
+  margin-top: 4px;
+  word-break: break-word;
+  max-width: 72px;
+  line-height: 1.8;
+  color: var(--text-dark);
+}
+
+/* ============================================================
+   GO MOVES
+   ============================================================ */
+.go-moves-group {
+  margin-bottom: 16px;
+}
+
+.go-moves-group:last-child { margin-bottom: 0; }
+
+.go-moves-group-title {
+  font-size: 0.42rem;
+  color: var(--border-red);
+  letter-spacing: 2px;
+  margin-bottom: 8px;
+}
+
+.go-move-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 7px 8px;
+  border-bottom: 1px solid var(--bg-panel-dark);
+  min-height: 44px;
+}
+
+.go-move-row:last-child { border-bottom: none; }
+
+.go-move-row.best {
+  background: #fffae0;
+  border-left: 3px solid #b8960a;
+  padding-left: 5px;
+}
+
+.best-badge {
+  font-size: 0.7rem;
+  color: #b8960a;
+  line-height: 1;
+  flex-shrink: 0;
+  width: 16px;
+  text-align: center;
+}
+
+.best-badge-placeholder {
+  display: inline-block;
+  width: 16px;
+  flex-shrink: 0;
+}
+
+.go-move-name {
+  font-size: 0.42rem;
+  flex: 1;
+  min-width: 80px;
+}
+
+.go-move-power {
+  font-size: 0.38rem;
+  color: var(--text-muted);
+}
+
+.go-move-metric {
+  font-size: 0.38rem;
+  color: var(--accent-blue);
+}
+
+.go-no-data {
+  font-size: 0.42rem;
+  color: var(--text-muted);
+  padding: 8px 0;
+  opacity: 0.7;
+}
+
+/* ============================================================
    RESPONSIVE
    ============================================================ */
 @media (max-width: 600px) {
