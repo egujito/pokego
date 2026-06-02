@@ -250,7 +250,8 @@ img {
   user-select: none;
 }
 
-.pokemon-card:hover {
+.pokemon-card:hover,
+.pokemon-card:active {
   transform: translateY(-4px);
   box-shadow:
     inset 2px 2px 0 #fffbf0,
@@ -294,7 +295,8 @@ img {
   transition: transform 0.05s, box-shadow 0.05s;
 }
 
-#back-btn:hover {
+#back-btn:hover,
+#back-btn:active {
   background: var(--accent-blue);
   color: var(--text-light);
   transform: translateY(-2px);
@@ -541,7 +543,8 @@ img {
   min-width: 72px;
 }
 
-.evo-stage:hover {
+.evo-stage:hover,
+.evo-stage:active {
   background: var(--accent-blue-lt);
   color: var(--text-light);
   transform: translateY(-2px);
@@ -604,7 +607,8 @@ img {
   min-width: 72px;
 }
 
-.variety-chip:hover {
+.variety-chip:hover,
+.variety-chip:active {
   background: var(--accent-blue-lt);
   color: var(--text-light);
   transform: translateY(-2px);
