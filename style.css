@@ -835,6 +835,292 @@ img {
 }
 
 /* ============================================================
+   QUICK-TOOLS BAR
+   ============================================================ */
+#quick-tools-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  padding: 12px 16px;
+  border-bottom: 2px solid var(--bg-panel-dark);
+}
+
+.tool-shortcut {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 10px 14px;
+  min-height: 44px;
+  font-family: var(--font-game);
+  font-size: 0.5rem;
+  letter-spacing: 1px;
+  background: var(--bg-panel);
+  border: 3px solid var(--border-dark);
+  box-shadow: 3px 3px 0 var(--border-dark);
+  color: var(--text-dark);
+  transition: transform 0.05s, box-shadow 0.05s, background 0.05s;
+  touch-action: manipulation;
+}
+
+.tool-shortcut:hover,
+.tool-shortcut:active {
+  background: var(--accent-blue);
+  color: var(--text-light);
+  transform: translateY(-2px);
+  box-shadow: 3px 5px 0 var(--border-dark);
+}
+
+/* ============================================================
+   TOOL VIEWS (cp-calc, type-check)
+   ============================================================ */
+#view-cp-calc,
+#view-type-check {
+  padding: 0 0 32px;
+}
+
+.tool-back-btn {
+  display: inline-block;
+  margin: 14px 16px 0;
+  padding: 10px 14px;
+  min-height: 44px;
+  font-size: 0.5rem;
+  background: var(--bg-panel);
+  border: 3px solid var(--border-dark);
+  box-shadow: 3px 3px 0 var(--border-dark);
+  color: var(--text-dark);
+  transition: transform 0.05s, box-shadow 0.05s;
+  touch-action: manipulation;
+}
+
+.tool-back-btn:hover,
+.tool-back-btn:active {
+  background: var(--accent-blue);
+  color: var(--text-light);
+  transform: translateY(-2px);
+  box-shadow: 3px 5px 0 var(--border-dark);
+}
+
+#cp-calc-content,
+#type-check-content {
+  padding: 12px 16px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.tool-section {
+  padding: 14px 16px;
+}
+
+.tool-section h3 {
+  font-size: 0.55rem;
+  letter-spacing: 2px;
+  color: var(--border-red);
+  margin-bottom: 12px;
+  padding-bottom: 6px;
+  border-bottom: 2px solid var(--bg-panel-dark);
+}
+
+.tool-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 12px;
+}
+
+.tool-label {
+  font-size: 0.4rem;
+  color: var(--text-muted);
+  letter-spacing: 1px;
+}
+
+.tool-hint {
+  font-size: 0.4rem;
+  color: var(--text-muted);
+  line-height: 2;
+  margin-bottom: 12px;
+}
+
+.tool-input {
+  width: 100%;
+  font-family: var(--font-game);
+  font-size: 16px; /* prevents iOS zoom */
+  padding: 10px;
+  background: var(--bg-cream);
+  border: 3px solid var(--border-dark);
+  color: var(--text-dark);
+  outline: none;
+  box-shadow: inset 2px 2px 0 rgba(0,0,0,0.12), 2px 2px 0 var(--border-dark);
+}
+
+.tool-input:focus {
+  border-color: var(--accent-blue);
+  box-shadow: inset 2px 2px 0 rgba(0,0,0,0.1), 2px 2px 0 var(--accent-blue);
+}
+
+.tool-action-btn {
+  width: 100%;
+  min-height: 44px;
+  padding: 12px 16px;
+  font-family: var(--font-game);
+  font-size: 0.5rem;
+  letter-spacing: 2px;
+  background: var(--border-red);
+  color: var(--text-light);
+  border: 3px solid var(--border-dark);
+  box-shadow: 3px 3px 0 var(--border-dark);
+  transition: transform 0.05s, box-shadow 0.05s;
+  touch-action: manipulation;
+}
+
+.tool-action-btn:hover,
+.tool-action-btn:active {
+  transform: translateY(-2px);
+  box-shadow: 3px 5px 0 var(--border-dark);
+}
+
+/* ============================================================
+   CP TOOL — SEARCH DROPDOWN
+   ============================================================ */
+.tool-search-wrap { position: relative; }
+
+.tool-search-dropdown {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  z-index: 300;
+  max-height: 280px;
+  overflow-y: auto;
+  background: var(--bg-panel);
+  border: 3px solid var(--border-dark);
+  box-shadow: 4px 4px 0 var(--border-dark);
+}
+
+.tool-search-dropdown li {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 7px 10px;
+  cursor: pointer;
+  border-bottom: 2px solid var(--bg-panel-dark);
+  touch-action: manipulation;
+}
+
+.tool-search-dropdown li:last-child { border-bottom: none; }
+
+.tool-search-dropdown li:hover,
+.tool-search-dropdown li.active {
+  background: var(--accent-blue);
+  color: var(--text-light);
+}
+
+.tool-search-dropdown li .dd-num { font-size: 0.4rem; color: var(--text-muted); min-width: 36px; }
+.tool-search-dropdown li:hover .dd-num,
+.tool-search-dropdown li.active .dd-num { color: rgba(255,255,255,0.7); }
+.tool-search-dropdown li .dd-name { font-size: 0.5rem; flex: 1; }
+.tool-search-dropdown li img { width: 36px; height: 36px; flex-shrink: 0; }
+
+.cp-selected-display {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px;
+  background: var(--bg-cream);
+  border: 2px solid var(--border-dark);
+  font-size: 0.45rem;
+}
+
+/* ============================================================
+   CP RESULT ROWS
+   ============================================================ */
+.cp-result-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 8px;
+  border-bottom: 1px solid var(--bg-panel-dark);
+  min-height: 44px;
+}
+
+.cp-result-row:last-child { border-bottom: none; }
+
+.cp-evo-name {
+  font-size: 0.45rem;
+  flex: 1;
+  min-width: 80px;
+}
+
+.cp-candy {
+  font-size: 0.38rem;
+  color: var(--text-muted);
+}
+
+.cp-range {
+  font-size: 0.45rem;
+  color: var(--accent-blue);
+  font-weight: bold;
+}
+
+/* ============================================================
+   TYPE CHECKER — MODE TABS
+   ============================================================ */
+.mode-tabs {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 14px;
+}
+
+.mode-tab {
+  flex: 1;
+  min-height: 44px;
+  padding: 10px 8px;
+  font-family: var(--font-game);
+  font-size: 0.45rem;
+  letter-spacing: 1px;
+  background: var(--bg-cream);
+  border: 3px solid var(--border-dark);
+  box-shadow: 2px 2px 0 var(--border-dark);
+  color: var(--text-dark);
+  transition: background 0.08s, color 0.08s;
+  touch-action: manipulation;
+}
+
+.mode-tab:hover { background: var(--bg-panel-dark); }
+
+.mode-tab.active {
+  background: var(--border-red);
+  color: var(--text-light);
+  border-color: var(--border-dark);
+}
+
+/* ============================================================
+   MOVE SE SUB-ROWS
+   ============================================================ */
+.move-se-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 8px 6px 26px;
+  border-bottom: 1px solid var(--bg-panel-dark);
+  background: rgba(0,0,0,0.02);
+}
+
+.move-se-label {
+  font-size: 0.35rem;
+  color: var(--text-muted);
+  margin-right: 2px;
+  flex-shrink: 0;
+}
+
+.move-se-row .type-badge {
+  font-size: 0.35rem;
+  padding: 2px 6px;
+}
+
+/* ============================================================
    SCROLLBAR (webkit)
    ============================================================ */
 ::-webkit-scrollbar { width: 10px; }
