@@ -619,6 +619,11 @@ img {
 /* ============================================================
    MOVES TABLE
    ============================================================ */
+.moves-table-scroll {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
 .moves-filter { margin-bottom: 12px; }
 
 .moves-filter select {

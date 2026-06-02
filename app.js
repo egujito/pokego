@@ -610,12 +610,14 @@ function renderMoves(moves, genFilter) {
   `).join('');
 
   return `
-    <table class="moves-table">
-      <thead>
-        <tr><th>MOVE</th><th>METHOD</th><th>LVL</th></tr>
-      </thead>
-      <tbody>${trs}</tbody>
-    </table>
+    <div class="moves-table-scroll">
+      <table class="moves-table">
+        <thead>
+          <tr><th>MOVE</th><th>METHOD</th><th>LVL</th></tr>
+        </thead>
+        <tbody>${trs}</tbody>
+      </table>
+    </div>
   `;
 }
 
