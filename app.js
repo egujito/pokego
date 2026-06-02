@@ -917,7 +917,7 @@ function selectCpPokemon(id, name) {
 }
 
 function calcEvolutionCp(goEntry, currentCp) {
-  const evolutions = goEntry.evolution;
+  const evolutions = goEntry.evolution?.futureBranches;
   if (!evolutions?.length) {
     return '<p class="go-no-data">NO EVOLUTIONS IN GO.</p>';
   }
@@ -930,7 +930,7 @@ function calcEvolutionCp(goEntry, currentCp) {
       return `
         <div class="cp-result-row">
           <span class="cp-evo-name">${formatName(evo.id.replace(/_/g,' '))}</span>
-          <span class="cp-candy">🍬 ${evo.candyCost ?? '?'}</span>
+          <span class="cp-candy">🍬 ${evo.costToEvolve?.candyCost ?? '?'}</span>
           <span class="go-no-data">NO DATA</span>
         </div>
       `;
@@ -945,7 +945,7 @@ function calcEvolutionCp(goEntry, currentCp) {
       <div class="cp-result-row">
         <img src="${SPRITE_BASE}/${evoEntry.dex}.png" alt="${evo.id}" width="40" height="40">
         <span class="cp-evo-name">${formatName(evoEntry.name ?? evo.id.replace(/_/g,' '))}</span>
-        <span class="cp-candy">🍬 ${evo.candyCost ?? '?'}</span>
+        <span class="cp-candy">🍬 ${evo.costToEvolve?.candyCost ?? '?'}</span>
         <span class="cp-range">${low} – ${high} CP</span>
       </div>
     `;
