@@ -121,10 +121,14 @@ function initRouter() {
 
 function handleRoute() {
   const hash = window.location.hash || '#/';
-  const match = hash.match(/^#\/pokemon\/(\d+)$/);
+  const pokemonMatch = hash.match(/^#\/pokemon\/(\d+)$/);
 
-  if (match) {
-    showDetailView(parseInt(match[1], 10));
+  if (pokemonMatch) {
+    showDetailView(parseInt(pokemonMatch[1], 10));
+  } else if (hash === '#/cp-calc') {
+    showCpCalcView();
+  } else if (hash === '#/type-check') {
+    showTypeCheckView();
   } else {
     showPokedexView();
   }
@@ -151,6 +155,11 @@ async function init() {
     }));
     initRouter();
     initSearch();
+
+    // Tool back buttons navigate to the grid
+    document.querySelectorAll('.tool-back-btn').forEach(btn =>
+      btn.addEventListener('click', () => navigateTo('#/'))
+    );
   } catch (err) {
     showError('Failed to load Pokédex data. Please refresh.');
   } finally {
