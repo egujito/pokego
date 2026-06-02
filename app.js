@@ -763,6 +763,165 @@ function renderMoves(moves, genFilter) {
 }
 
 // ============================================================
+// CP EVOLUTION CALCULATOR
+// ============================================================
+
+let cpToolRendered = false;
+let cpSelectedEntry = null;
+
+function showCpCalcView() {
+  setView('cp-calc');
+  if (!cpToolRendered) {
+    renderCpCalcTool();
+    cpToolRendered = true;
+  }
+}
+
+function renderCpCalcTool() {
+  const content = document.getElementById('cp-calc-content');
+  content.innerHTML = `
+    <div class="tool-section panel">
+      <h3>CP EVOLUTION CALCULATOR</h3>
+      <p class="tool-hint">Search a Pokémon, enter its current CP, then calculate its evolution CP range.</p>
+
+      <div class="tool-field">
+        <label class="tool-label">POKÉMON</label>
+        <div class="tool-search-wrap" style="position:relative">
+          <input id="cp-pokemon-input" class="tool-input" type="text"
+            placeholder="TYPE TO SEARCH..." autocomplete="off" spellcheck="false">
+          <ul id="cp-search-dropdown" class="hidden tool-search-dropdown" role="listbox"></ul>
+        </div>
+        <div id="cp-selected-display" class="cp-selected-display hidden"></div>
+      </div>
+
+      <div class="tool-field">
+        <label class="tool-label">CURRENT CP</label>
+        <input id="cp-current-val" class="tool-input" type="number"
+          placeholder="e.g. 1500" min="10" max="9999" inputmode="numeric">
+      </div>
+
+      <button id="cp-calc-btn" class="tool-action-btn">CALCULATE</button>
+    </div>
+
+    <div id="cp-result" class="tool-section panel hidden"></div>
+  `;
+
+  initCpSearch();
+  document.getElementById('cp-calc-btn').addEventListener('click', () => {
+    const cp = parseInt(document.getElementById('cp-current-val').value, 10);
+    if (!cpSelectedEntry) {
+      showCpResult('<p class="go-no-data">SELECT A POKÉMON FIRST.</p>');
+      return;
+    }
+    if (!cp || cp < 10) {
+      showCpResult('<p class="go-no-data">ENTER A VALID CP (≥10).</p>');
+      return;
+    }
+    showCpResult(calcEvolutionCp(cpSelectedEntry, cp));
+  });
+}
+
+function initCpSearch() {
+  const input    = document.getElementById('cp-pokemon-input');
+  const dropdown = document.getElementById('cp-search-dropdown');
+  let debounce   = null;
+
+  input.addEventListener('input', () => {
+    clearTimeout(debounce);
+    debounce = setTimeout(() => {
+      const q = input.value.trim().toLowerCase().replace(/\s+/g, '-');
+      if (q.length < 2) { dropdown.classList.add('hidden'); return; }
+
+      const prefixMatches    = State.allPokemon.filter(p => p.name.startsWith(q));
+      const substringMatches = State.allPokemon.filter(p => !p.name.startsWith(q) && p.name.includes(q));
+      const results          = [...prefixMatches, ...substringMatches].slice(0, 8);
+
+      dropdown.innerHTML = '';
+      if (!results.length) { dropdown.classList.add('hidden'); return; }
+
+      results.forEach(({ name, id }) => {
+        const li = document.createElement('li');
+        li.innerHTML = `
+          <img src="${SPRITE_BASE}/${id}.png" alt="" width="36" height="36" loading="lazy">
+          <span class="dd-num">#${String(id).padStart(3,'0')}</span>
+          <span class="dd-name">${formatName(name)}</span>
+        `;
+        li.addEventListener('click', () => {
+          input.value = '';
+          dropdown.classList.add('hidden');
+          selectCpPokemon(id, name);
+        });
+        dropdown.appendChild(li);
+      });
+      dropdown.classList.remove('hidden');
+    }, 150);
+  });
+
+  document.addEventListener('click', (e) => {
+    if (!e.target.closest('#cp-calc-content')) dropdown.classList.add('hidden');
+  });
+}
+
+function selectCpPokemon(id, name) {
+  cpSelectedEntry = getGoEntry(id, name) ?? null;
+
+  const display = document.getElementById('cp-selected-display');
+  display.classList.remove('hidden');
+  display.innerHTML = `
+    <img src="${SPRITE_BASE}/${id}.png" alt="${name}" width="48" height="48">
+    <span>${formatName(name)}</span>
+    ${!cpSelectedEntry ? '<span class="go-no-data">(no GO data)</span>' : ''}
+  `;
+}
+
+function calcEvolutionCp(goEntry, currentCp) {
+  const evolutions = goEntry.evolution;
+  if (!evolutions?.length) {
+    return '<p class="go-no-data">NO EVOLUTIONS IN GO.</p>';
+  }
+
+  const { baseAttack: curAtk, baseDefense: curDef, baseStamina: curSta } = goEntry.stats;
+
+  const rows = evolutions.map(evo => {
+    const evoEntry = State.goByName[evo.id];
+    if (!evoEntry?.stats) {
+      return `
+        <div class="cp-result-row">
+          <span class="cp-evo-name">${formatName(evo.id.replace(/_/g,' '))}</span>
+          <span class="cp-candy">🍬 ${evo.candyCost ?? '?'}</span>
+          <span class="go-no-data">NO DATA</span>
+        </div>
+      `;
+    }
+    const { baseAttack: evoAtk, baseDefense: evoDef, baseStamina: evoSta } = evoEntry.stats;
+    const ratio     = (evoAtk / curAtk) * Math.sqrt(evoDef / curDef) * Math.sqrt(evoSta / curSta);
+    const predicted = Math.floor(currentCp * ratio);
+    const low       = Math.floor(predicted * 0.9);
+    const high      = Math.floor(predicted * 1.1);
+
+    return `
+      <div class="cp-result-row">
+        <img src="${SPRITE_BASE}/${evoEntry.dex}.png" alt="${evo.id}" width="40" height="40">
+        <span class="cp-evo-name">${formatName(evoEntry.name ?? evo.id.replace(/_/g,' '))}</span>
+        <span class="cp-candy">🍬 ${evo.candyCost ?? '?'}</span>
+        <span class="cp-range">${low} – ${high} CP</span>
+      </div>
+    `;
+  }).join('');
+
+  return `
+    <p class="tool-hint" style="margin-bottom:10px">PREDICTED RANGE (±10% IV SPREAD)</p>
+    ${rows}
+  `;
+}
+
+function showCpResult(html) {
+  const el = document.getElementById('cp-result');
+  el.innerHTML = html;
+  el.classList.remove('hidden');
+}
+
+// ============================================================
 // SHINY TOGGLE
 // ============================================================
 
