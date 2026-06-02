@@ -595,6 +595,87 @@ function formatEvoCondition(detail) {
 }
 
 // ============================================================
+// POKÉMON GO MOVES
+// ============================================================
+
+function getGoEntry(id, name) {
+  return State.goByDex[id]
+      ?? State.goByName[name.toUpperCase().replace(/-/g, '_')];
+}
+
+function getBestMoveset(quickMoves, cinematicMoves) {
+  const fastScore   = id => {
+    const s = State.goMoveStats[id];
+    return s ? s.power / (s.durationMs / 1000) : 0;
+  };
+  const chargeScore = id => {
+    const s = State.goMoveStats[id];
+    return s ? s.power / Math.max(Math.abs(s.energyDelta), 1) : 0;
+  };
+
+  const bestFast   = quickMoves?.reduce((a, b) =>
+    fastScore(a.id) >= fastScore(b.id) ? a : b, quickMoves[0]);
+  const bestCharge = cinematicMoves?.reduce((a, b) =>
+    chargeScore(a.id) >= chargeScore(b.id) ? a : b, cinematicMoves[0]);
+
+  return { bestFastId: bestFast?.id, bestChargeId: bestCharge?.id };
+}
+
+function renderGoMoves(pokemonId, pokemonName) {
+  const goEntry = getGoEntry(pokemonId, pokemonName);
+
+  if (!goEntry) {
+    return '<p class="go-no-data">NO GO DATA AVAILABLE</p>';
+  }
+
+  const { quickMoves = [], cinematicMoves = [] } = goEntry;
+  const { bestFastId, bestChargeId } = getBestMoveset(quickMoves, cinematicMoves);
+
+  const moveRowHtml = (move, isBest) => {
+    const stats = State.goMoveStats[move.id] ?? {};
+    const type  = stats.type ?? '';
+    const power = stats.power ?? '—';
+
+    let metricLabel = '';
+    let metricVal   = '';
+    if (stats.durationMs && stats.power) {
+      const dps = (stats.power / (stats.durationMs / 1000)).toFixed(1);
+      metricLabel = 'DPS';
+      metricVal   = dps;
+    }
+    if (!metricVal && stats.energyDelta && stats.power) {
+      const dpe = (stats.power / Math.max(Math.abs(stats.energyDelta), 1)).toFixed(1);
+      metricLabel = 'DPE';
+      metricVal   = dpe;
+    }
+
+    return `
+      <div class="go-move-row${isBest ? ' best' : ''}">
+        ${isBest ? '<span class="best-badge">★</span>' : '<span class="best-badge-placeholder"></span>'}
+        <span class="go-move-name">${move.name}</span>
+        ${type ? typeBadge(type) : ''}
+        <span class="go-move-power">${power !== '—' ? `PWR ${power}` : ''}</span>
+        ${metricVal ? `<span class="go-move-metric">${metricLabel} ${metricVal}</span>` : ''}
+      </div>
+    `;
+  };
+
+  const fastHtml = quickMoves.map(m => moveRowHtml(m, m.id === bestFastId)).join('');
+  const chargeHtml = cinematicMoves.map(m => moveRowHtml(m, m.id === bestChargeId)).join('');
+
+  return `
+    <div class="go-moves-group">
+      <p class="go-moves-group-title">── FAST MOVES ──</p>
+      ${fastHtml || '<p class="go-no-data">NONE</p>'}
+    </div>
+    <div class="go-moves-group">
+      <p class="go-moves-group-title">── CHARGED MOVES ──</p>
+      ${chargeHtml || '<p class="go-no-data">NONE</p>'}
+    </div>
+  `;
+}
+
+// ============================================================
 // VARIETIES / FORMS
 // ============================================================
 
