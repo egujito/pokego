@@ -349,7 +349,7 @@ img {
 
 .detail-title {
   flex: 1;
-  min-width: 160px;
+  min-width: 0; /* let flex shrink properly on narrow screens */
 }
 
 .detail-title h2 {
