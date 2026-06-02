@@ -416,7 +416,7 @@ function renderDetail(pokemon, species, evoChain) {
       <div class="varieties">${varietiesHtml}</div>
     </section>` : ''}
 
-    <section class="detail-section panel">
+    <section id="go-moves-section" class="detail-section panel">
       <h3>GO MOVES</h3>
       ${renderGoMoves(id, name)}
     </section>
@@ -435,6 +435,11 @@ function renderDetail(pokemon, species, evoChain) {
     document.getElementById('effectiveness-content').innerHTML = renderEffectiveness(eff);
   }).catch(() => {
     document.getElementById('effectiveness-content').textContent = 'Failed to load.';
+  });
+
+  queueMicrotask(() => {
+    const movesSection = container.querySelector('#go-moves-section');
+    if (movesSection) attachMoveTypeEffectiveness(movesSection);
   });
 }
 
@@ -668,6 +673,43 @@ function renderGoMoves(pokemonId, pokemonName) {
       ${chargeHtml || '<p class="go-no-data">NONE</p>'}
     </div>
   `;
+}
+
+async function attachMoveTypeEffectiveness(sectionEl) {
+  const moveRows = [...sectionEl.querySelectorAll('.go-move-row')];
+  if (!moveRows.length) return;
+
+  const uniqueTypes = [...new Set(
+    moveRows
+      .map(row => row.querySelector('.type-badge')?.dataset.type)
+      .filter(Boolean)
+  )];
+
+  let typeDataMap;
+  try {
+    const dataArr = await Promise.all(
+      uniqueTypes.map(t => apiFetch(`${BASE_URL}/type/${t}`))
+    );
+    typeDataMap = Object.fromEntries(uniqueTypes.map((t, i) => [t, dataArr[i]]));
+  } catch {
+    return;
+  }
+
+  for (const row of moveRows) {
+    const moveType = row.querySelector('.type-badge')?.dataset.type;
+    if (!moveType || !typeDataMap[moveType]) continue;
+
+    const { double_damage_to } = typeDataMap[moveType].damage_relations;
+    if (!double_damage_to.length) continue;
+
+    const seRow = document.createElement('div');
+    seRow.className = 'move-se-row';
+    seRow.innerHTML =
+      `<span class="move-se-label">SE▸</span>` +
+      double_damage_to.map(({ name }) => typeBadge(name)).join('');
+
+    row.insertAdjacentElement('afterend', seRow);
+  }
 }
 
 // ============================================================
