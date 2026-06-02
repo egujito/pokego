@@ -415,10 +415,6 @@ function renderDetail(pokemon, species, evoChain) {
     el.addEventListener('click', () => navigateTo(`#/pokemon/${el.dataset.id}`));
   });
 
-  container.querySelectorAll('.variety-chip, .mega-chip').forEach(el => {
-    el.addEventListener('click', () => navigateTo(`#/pokemon/${el.dataset.id}`));
-  });
-
   // async type effectiveness
   computeTypeEffectiveness(types).then(eff => {
     document.getElementById('effectiveness-content').innerHTML = renderEffectiveness(eff);

@@ -597,21 +597,12 @@ img {
   display: flex;
   flex-direction: column;
   align-items: center;
-  cursor: pointer;
+  cursor: default;
   padding: 10px 8px;
-  min-height: 44px;
   background: var(--bg-cream);
   border: 2px solid var(--border-dark);
   box-shadow: 2px 2px 0 var(--border-dark);
-  transition: transform 0.08s, background 0.08s;
   min-width: 72px;
-}
-
-.variety-chip:hover,
-.variety-chip:active {
-  background: var(--accent-blue-lt);
-  color: var(--text-light);
-  transform: translateY(-2px);
 }
 
 .variety-chip img { width: 56px; height: 56px; }
@@ -703,22 +694,12 @@ img {
   display: flex;
   flex-direction: column;
   align-items: center;
-  cursor: pointer;
+  cursor: default;
   padding: 10px 8px;
-  min-height: 44px;
   background: #fffae0;
   border: 2px solid #b8960a;
   box-shadow: 2px 2px 0 #b8960a;
-  transition: transform 0.08s, background 0.08s;
   min-width: 72px;
-  touch-action: manipulation;
-}
-
-.mega-chip:hover,
-.mega-chip:active {
-  background: #ffe066;
-  transform: translateY(-2px);
-  box-shadow: 2px 4px 0 #b8960a;
 }
 
 .mega-chip img { width: 56px; height: 56px; }
