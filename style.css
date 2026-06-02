@@ -110,7 +110,7 @@ img {
 #search-input {
   width: 100%;
   font-family: var(--font-game);
-  font-size: 0.55rem;
+  font-size: 16px; /* must be ≥16px to prevent iOS Safari viewport zoom on focus */
   padding: 7px 10px;
   background: var(--bg-cream);
   border: 3px solid var(--border-dark);
