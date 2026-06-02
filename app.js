@@ -679,13 +679,29 @@ function renderGoMoves(pokemonId, pokemonName) {
 // VARIETIES / FORMS
 // ============================================================
 
-function buildVarietiesHtml(varieties, defaultId) {
-  const filtered = varieties.filter(v => {
-    if (v.is_default) return false;
-    const varId = idFromUrl(v.pokemon.url);
-    return varId !== defaultId;
-  });
+const isMegaOrGmax = name => name.includes('-mega') || name.includes('-gmax') || name.includes('-primal');
 
+function buildMegaEvosHtml(varieties, defaultId) {
+  const megas = varieties.filter(v =>
+    !v.is_default && isMegaOrGmax(v.pokemon.name) && idFromUrl(v.pokemon.url) !== defaultId
+  );
+  if (megas.length === 0) return '';
+
+  return megas.map(v => {
+    const varId = idFromUrl(v.pokemon.url);
+    return `
+      <div class="mega-chip" data-id="${varId}">
+        <img src="${SPRITE_BASE}/${varId}.png" alt="${v.pokemon.name}" width="56" height="56" loading="lazy">
+        <p>${formatName(v.pokemon.name)}</p>
+      </div>
+    `;
+  }).join('');
+}
+
+function buildVarietiesHtml(varieties, defaultId) {
+  const filtered = varieties.filter(v =>
+    !v.is_default && !isMegaOrGmax(v.pokemon.name) && idFromUrl(v.pokemon.url) !== defaultId
+  );
   if (filtered.length === 0) return '';
 
   return filtered.map(v => {
