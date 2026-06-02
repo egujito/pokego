@@ -7,6 +7,10 @@
 const BASE_URL    = 'https://pokeapi.co/api/v2';
 const SPRITE_BASE = 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon';
 
+const GO_BASE         = 'https://raw.githubusercontent.com/pokemongo-dev-contrib/pokemongo-json-pokedex/master/output';
+const GO_POKEMON_URL  = `${GO_BASE}/pokemon.json`;
+const GO_MOVES_URL    = `${GO_BASE}/move.json`;
+
 const GRID_PAGE_SIZE = 96;
 
 const STAT_NAMES = {
@@ -62,6 +66,45 @@ async function apiFetch(url) {
   return data;
 }
 
+async function fetchGoData() {
+  const cached = Cache.get('go-processed');
+  if (cached) {
+    State.goByDex    = cached.goByDex;
+    State.goByName   = cached.goByName;
+    State.goMoveStats = cached.goMoveStats;
+    return;
+  }
+
+  const [pokeArr, moveArr] = await Promise.all([
+    fetch(GO_POKEMON_URL).then(r => r.json()),
+    fetch(GO_MOVES_URL).then(r => r.json()),
+  ]);
+
+  const goMoveStats = {};
+  for (const move of moveArr) {
+    if (!move.id) continue;
+    goMoveStats[move.id] = {
+      type:        (move.type ?? '').toLowerCase(),
+      power:       move.power       ?? 0,
+      durationMs:  move.durationMs  ?? 1000,
+      energyDelta: move.energyDelta ?? 0,
+    };
+  }
+
+  const goByDex  = {};
+  const goByName = {};
+  for (const poke of pokeArr) {
+    if (poke.dex)  goByDex[poke.dex]   = poke;
+    if (poke.id)   goByName[poke.id]   = poke;
+  }
+
+  State.goByDex    = goByDex;
+  State.goByName   = goByName;
+  State.goMoveStats = goMoveStats;
+
+  Cache.set('go-processed', { goByDex, goByName, goMoveStats });
+}
+
 // ============================================================
 // STATE
 // ============================================================
@@ -73,6 +116,9 @@ const State = {
   currentPokemonId: null,
   shinyMode:        false,
   sentinelObserver: null,
+  goByDex:          {},   // { dexNumber: goPokeEntry }
+  goByName:         {},   // { "CHARIZARD_MEGA_X": goPokeEntry }
+  goMoveStats:      {},   // { "FIRE_SPIN_FAST": { type, power, durationMs, energyDelta } }
 };
 
 // ============================================================
