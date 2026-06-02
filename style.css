@@ -793,14 +793,15 @@ img {
   :root { --card-width: 90px; }
 
   #site-header {
-    flex-direction: column;
-    align-items: stretch;
+    flex-wrap: wrap;
     gap: 8px;
     padding: 8px 10px;
   }
 
   #site-title { font-size: 0.7rem; }
-  #search-container { max-width: 100%; }
+  #header-tools { order: 3; width: 100%; }
+  #header-tools .tool-shortcut { flex: 1; justify-content: center; }
+  #search-container { max-width: 100%; flex: 1; }
 
   /* Stack sprites above title info, center both */
   .detail-header {
@@ -835,39 +836,33 @@ img {
 }
 
 /* ============================================================
-   QUICK-TOOLS BAR
+   HEADER TOOLS
    ============================================================ */
-#quick-tools-bar {
+#header-tools {
   display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-  padding: 12px 16px;
-  border-bottom: 2px solid var(--bg-panel-dark);
+  gap: 6px;
+  flex-shrink: 0;
 }
 
 .tool-shortcut {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  padding: 10px 14px;
-  min-height: 44px;
+  padding: 8px 10px;
+  min-height: 40px;
   font-family: var(--font-game);
-  font-size: 0.5rem;
+  font-size: 0.42rem;
   letter-spacing: 1px;
-  background: var(--bg-panel);
-  border: 3px solid var(--border-dark);
-  box-shadow: 3px 3px 0 var(--border-dark);
-  color: var(--text-dark);
-  transition: transform 0.05s, box-shadow 0.05s, background 0.05s;
+  background: rgba(255,255,255,0.12);
+  border: 2px solid rgba(255,255,255,0.35);
+  color: var(--text-light);
+  transition: background 0.08s;
   touch-action: manipulation;
 }
 
 .tool-shortcut:hover,
 .tool-shortcut:active {
-  background: var(--accent-blue);
-  color: var(--text-light);
-  transform: translateY(-2px);
-  box-shadow: 3px 5px 0 var(--border-dark);
+  background: rgba(255,255,255,0.28);
 }
 
 /* ============================================================
