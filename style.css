@@ -697,13 +697,30 @@ img {
     padding: 8px 10px;
   }
 
+  #site-title { font-size: 0.7rem; }
   #search-container { max-width: 100%; }
-  .detail-header { flex-direction: column; }
+
+  /* Stack sprites above title info, center both */
+  .detail-header {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+  }
+
+  .detail-title { width: 100%; }
+  .type-badges { justify-content: center; }
 
   .stat-row {
     grid-template-columns: 56px 30px 1fr;
     gap: 5px;
   }
+
+  /* Prevent evo chain from overflowing by allowing wrap */
+  .evo-chain { justify-content: center; }
+  .evo-branch { justify-content: center; }
+
+  /* Search dropdown fills more of the screen on mobile */
+  #search-dropdown { max-height: 50vh; }
 }
 
 @media (max-width: 400px) {
@@ -711,6 +728,8 @@ img {
 
   .pokemon-card img { width: 64px; height: 64px; }
   .card-name { font-size: 0.38rem; }
+
+  .detail-sprites img { width: 80px; height: 80px; }
 }
 
 /* ============================================================
