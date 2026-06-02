@@ -242,7 +242,8 @@ img {
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 8px 4px 10px;
+  padding: 10px 4px;
+  min-height: 44px;
   cursor: pointer;
   text-align: center;
   transition: transform 0.08s, box-shadow 0.08s;
@@ -283,7 +284,8 @@ img {
 #back-btn {
   display: inline-block;
   margin: 14px 16px 0;
-  padding: 8px 14px;
+  padding: 10px 14px;
+  min-height: 44px;
   font-size: 0.5rem;
   background: var(--bg-panel);
   border: 3px solid var(--border-dark);
@@ -407,7 +409,8 @@ img {
    SHINY TOGGLE
    ============================================================ */
 .shiny-toggle {
-  padding: 6px 12px;
+  padding: 10px 12px;
+  min-height: 44px;
   font-size: 0.45rem;
   background: var(--bg-cream);
   border: 3px solid var(--border-dark);
@@ -529,7 +532,8 @@ img {
   flex-direction: column;
   align-items: center;
   cursor: pointer;
-  padding: 6px 8px;
+  padding: 10px 8px;
+  min-height: 44px;
   background: var(--bg-cream);
   border: 2px solid var(--border-dark);
   box-shadow: 2px 2px 0 var(--border-dark);
@@ -591,7 +595,8 @@ img {
   flex-direction: column;
   align-items: center;
   cursor: pointer;
-  padding: 6px 8px;
+  padding: 10px 8px;
+  min-height: 44px;
   background: var(--bg-cream);
   border: 2px solid var(--border-dark);
   box-shadow: 2px 2px 0 var(--border-dark);
@@ -629,7 +634,8 @@ img {
 .moves-filter select {
   font-family: var(--font-game);
   font-size: 0.45rem;
-  padding: 6px 10px;
+  padding: 10px 10px;
+  min-height: 44px;
   background: var(--bg-cream);
   border: 3px solid var(--border-dark);
   color: var(--text-dark);
