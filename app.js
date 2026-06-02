@@ -152,8 +152,11 @@ function navigateTo(path) {
 async function init() {
   showSpinner(true);
   try {
-    const data = await apiFetch(`${BASE_URL}/pokemon?limit=1010`);
-    State.allPokemon = data.results.map(({ name, url }) => ({
+    const [listData] = await Promise.all([
+      apiFetch(`${BASE_URL}/pokemon?limit=1010`),
+      fetchGoData().catch(() => { /* GO data failure is non-fatal */ }),
+    ]);
+    State.allPokemon = listData.results.map(({ name, url }) => ({
       name,
       id: parseInt(url.split('/').filter(Boolean).at(-1), 10),
     }));
