@@ -922,6 +922,119 @@ function showCpResult(html) {
 }
 
 // ============================================================
+// TYPE EFFECTIVENESS CHECKER
+// ============================================================
+
+let typeToolRendered = false;
+let typeToolMode = 'defending';
+
+function showTypeCheckView() {
+  setView('type-check');
+  if (!typeToolRendered) {
+    renderTypeCheckTool();
+    typeToolRendered = true;
+  }
+}
+
+function renderTypeCheckTool() {
+  const content = document.getElementById('type-check-content');
+  const typeOptions = ALL_TYPES.map(t =>
+    `<option value="${t}">${t.toUpperCase()}</option>`
+  ).join('');
+
+  content.innerHTML = `
+    <div class="tool-section panel">
+      <h3>TYPE EFFECTIVENESS</h3>
+      <p class="tool-hint">Select up to two types and choose a mode to check effectiveness.</p>
+
+      <div class="mode-tabs">
+        <button class="mode-tab active" data-mode="defending">DEFENDING</button>
+        <button class="mode-tab" data-mode="attacking">ATTACKING</button>
+      </div>
+
+      <div class="tool-field">
+        <label class="tool-label">PRIMARY TYPE</label>
+        <select id="type-sel-1" class="tool-input">
+          ${typeOptions}
+        </select>
+      </div>
+
+      <div class="tool-field">
+        <label class="tool-label">SECONDARY TYPE</label>
+        <select id="type-sel-2" class="tool-input">
+          <option value="">— NONE —</option>
+          ${typeOptions}
+        </select>
+      </div>
+
+      <button id="type-check-btn" class="tool-action-btn">CHECK</button>
+    </div>
+
+    <div id="type-result" class="tool-section panel hidden"></div>
+  `;
+
+  content.querySelectorAll('.mode-tab').forEach(tab => {
+    tab.addEventListener('click', () => {
+      content.querySelectorAll('.mode-tab').forEach(t => t.classList.remove('active'));
+      tab.classList.add('active');
+      typeToolMode = tab.dataset.mode;
+    });
+  });
+
+  document.getElementById('type-check-btn').addEventListener('click', () => {
+    const type1 = document.getElementById('type-sel-1').value;
+    const type2 = document.getElementById('type-sel-2').value || null;
+    runTypeCheck(type1, type2, typeToolMode);
+  });
+}
+
+async function runTypeCheck(type1, type2, mode) {
+  const resultEl = document.getElementById('type-result');
+  resultEl.innerHTML = '<span style="font-size:0.45rem;opacity:0.6">CALCULATING...</span>';
+  resultEl.classList.remove('hidden');
+
+  try {
+    if (mode === 'defending') {
+      const types = [{ type: { name: type1 } }];
+      if (type2) types.push({ type: { name: type2 } });
+      const eff = await computeTypeEffectiveness(types);
+      const html = renderEffectiveness(eff);
+      resultEl.innerHTML = html || '<p class="go-no-data">NO NOTABLE MATCHUPS.</p>';
+    } else {
+      const typeNames = type2 ? [type1, type2] : [type1];
+      const typeDataArr = await Promise.all(
+        typeNames.map(t => apiFetch(`${BASE_URL}/type/${t}`))
+      );
+
+      const multipliers = {};
+      for (const typeData of typeDataArr) {
+        const { double_damage_to, half_damage_to, no_damage_to } = typeData.damage_relations;
+        for (const { name } of double_damage_to)
+          multipliers[name] = (multipliers[name] ?? 1) * 2;
+        for (const { name } of half_damage_to)
+          multipliers[name] = (multipliers[name] ?? 1) * 0.5;
+        for (const { name } of no_damage_to)
+          multipliers[name] = 0;
+      }
+
+      const buckets = { quad: [], double: [], half: [], quarter: [], immune: [] };
+      for (const [type, mult] of Object.entries(multipliers)) {
+        if      (mult === 0)    buckets.immune.push(type);
+        else if (mult === 0.25) buckets.quarter.push(type);
+        else if (mult === 0.5)  buckets.half.push(type);
+        else if (mult === 2)    buckets.double.push(type);
+        else if (mult === 4)    buckets.quad.push(type);
+      }
+
+      const html = renderEffectiveness(buckets);
+      resultEl.innerHTML = html || '<p class="go-no-data">NO NOTABLE MATCHUPS.</p>';
+    }
+  } catch {
+    resultEl.innerHTML = '<p class="go-no-data">FAILED TO LOAD TYPE DATA.</p>';
+  }
+}
+
+// ============================================================
 // SHINY TOGGLE
 // ============================================================
 
