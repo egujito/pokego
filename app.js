@@ -22,17 +22,6 @@ const STAT_NAMES = {
   'speed':           'SPD',
 };
 
-const VERSION_GROUPS = [
-  { label: 'Gen I',    groups: ['red-blue', 'yellow'] },
-  { label: 'Gen II',   groups: ['gold-silver', 'crystal'] },
-  { label: 'Gen III',  groups: ['ruby-sapphire', 'emerald', 'firered-leafgreen'] },
-  { label: 'Gen IV',   groups: ['diamond-pearl', 'platinum', 'heartgold-soulsilver'] },
-  { label: 'Gen V',    groups: ['black-white', 'black-2-white-2'] },
-  { label: 'Gen VI',   groups: ['x-y', 'omega-ruby-alpha-sapphire'] },
-  { label: 'Gen VII',  groups: ['sun-moon', 'ultra-sun-ultra-moon'] },
-  { label: 'Gen VIII', groups: ['sword-shield', 'brilliant-diamond-shining-pearl', 'legends-arceus'] },
-  { label: 'Gen IX',   groups: ['scarlet-violet', 'the-teal-mask', 'the-indigo-disk'] },
-];
 
 // ============================================================
 // CACHE  (sessionStorage, silent fail on quota exceeded)
