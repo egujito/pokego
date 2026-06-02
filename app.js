@@ -13,6 +13,12 @@ const GO_MOVES_URL    = `${GO_BASE}/move.json`;
 
 const GRID_PAGE_SIZE = 96;
 
+const ALL_TYPES = [
+  'normal','fire','water','electric','grass','ice',
+  'fighting','poison','ground','flying','psychic','bug',
+  'rock','ghost','dragon','dark','steel','fairy',
+];
+
 const STAT_NAMES = {
   'hp':              'HP',
   'attack':          'ATK',
