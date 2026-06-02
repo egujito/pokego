@@ -350,7 +350,7 @@ async function showDetailView(id) {
 // ============================================================
 
 function renderDetail(pokemon, species, evoChain) {
-  const { id, name, types, stats, moves } = pokemon;
+  const { id, name, types, stats } = pokemon;
 
   const flavorText = species.flavor_text_entries
     .filter(e => e.language.name === 'en')
@@ -360,8 +360,8 @@ function renderDetail(pokemon, species, evoChain) {
     .replace(/\s+/g, ' ')
     .trim() ?? '';
 
-  const genus = species.genera.find(g => g.language.name === 'en')?.genus ?? '';
-
+  const genus       = species.genera.find(g => g.language.name === 'en')?.genus ?? '';
+  const megasHtml   = buildMegaEvosHtml(species.varieties, id);
   const varietiesHtml = buildVarietiesHtml(species.varieties, id);
 
   const container = document.getElementById('detail-content');
@@ -400,6 +400,12 @@ function renderDetail(pokemon, species, evoChain) {
       </div>
     </section>
 
+    ${megasHtml ? `
+    <section class="detail-section mega-section panel">
+      <h3>MEGA EVOLUTIONS</h3>
+      <div class="varieties">${megasHtml}</div>
+    </section>` : ''}
+
     ${varietiesHtml ? `
     <section class="detail-section panel">
       <h3>FORMS &amp; VARIANTS</h3>
@@ -407,14 +413,8 @@ function renderDetail(pokemon, species, evoChain) {
     </section>` : ''}
 
     <section class="detail-section panel">
-      <h3>MOVES</h3>
-      <div class="moves-filter">
-        <select id="gen-filter">
-          <option value="all">ALL GAMES</option>
-          ${VERSION_GROUPS.map(g => `<option value="${g.label}">${g.label}</option>`).join('')}
-        </select>
-      </div>
-      <div id="moves-list">${renderMoves(moves, null)}</div>
+      <h3>GO MOVES</h3>
+      ${renderGoMoves(id, name)}
     </section>
   `;
 
@@ -426,13 +426,8 @@ function renderDetail(pokemon, species, evoChain) {
     el.addEventListener('click', () => navigateTo(`#/pokemon/${el.dataset.id}`));
   });
 
-  container.querySelectorAll('.variety-chip').forEach(el => {
+  container.querySelectorAll('.variety-chip, .mega-chip').forEach(el => {
     el.addEventListener('click', () => navigateTo(`#/pokemon/${el.dataset.id}`));
-  });
-
-  document.getElementById('gen-filter').addEventListener('change', (e) => {
-    const gen = e.target.value === 'all' ? null : VERSION_GROUPS.find(g => g.label === e.target.value);
-    document.getElementById('moves-list').innerHTML = renderMoves(moves, gen);
   });
 
   // async type effectiveness
