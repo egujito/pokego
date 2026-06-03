@@ -529,17 +529,25 @@ function renderEffectiveness(eff) {
 function renderEvolutionChain(rootNode) {
   if (rootNode.evolves_to.length > 1) {
     // Branching: each branch gets its own row
-    return rootNode.evolves_to.map(child => `
-      <div class="evo-branch">
-        ${evoStageHtml(rootNode.species)}
-        ${evoArrowHtml(child.evolution_details[0])}
-        ${evoStageHtml(child.species)}
-        ${child.evolves_to.map(grand => `
-          ${evoArrowHtml(grand.evolution_details[0])}
-          ${evoStageHtml(grand.species)}
-        `).join('')}
-      </div>
-    `).join('');
+    return rootNode.evolves_to.map(child => {
+      const srcGoEntry = getGoEntry(idFromUrl(rootNode.species.url), rootNode.species.name);
+      const candyCost  = getGoCandyCost(srcGoEntry, child.species.name);
+      return `
+        <div class="evo-branch">
+          ${evoStageHtml(rootNode.species)}
+          ${evoArrowHtml(child.evolution_details[0], candyCost)}
+          ${evoStageHtml(child.species)}
+          ${child.evolves_to.map(grand => {
+            const midGoEntry  = getGoEntry(idFromUrl(child.species.url), child.species.name);
+            const grandCost   = getGoCandyCost(midGoEntry, grand.species.name);
+            return `
+              ${evoArrowHtml(grand.evolution_details[0], grandCost)}
+              ${evoStageHtml(grand.species)}
+            `;
+          }).join('')}
+        </div>
+      `;
+    }).join('');
   }
 
   // Linear chain
@@ -550,10 +558,16 @@ function renderEvolutionChain(rootNode) {
     node = node.evolves_to[0] ?? null;
   }
 
-  return segments.map((node, i) => `
-    ${i > 0 ? evoArrowHtml(node.evolution_details[0]) : ''}
-    ${evoStageHtml(node.species)}
-  `).join('');
+  return segments.map((node, i) => {
+    if (i === 0) return evoStageHtml(node.species);
+    const prev       = segments[i - 1];
+    const srcGoEntry = getGoEntry(idFromUrl(prev.species.url), prev.species.name);
+    const candyCost  = getGoCandyCost(srcGoEntry, node.species.name);
+    return `
+      ${evoArrowHtml(node.evolution_details[0], candyCost)}
+      ${evoStageHtml(node.species)}
+    `;
+  }).join('');
 }
 
 function evoStageHtml(species) {
@@ -566,10 +580,11 @@ function evoStageHtml(species) {
   `;
 }
 
-function evoArrowHtml(detail) {
+function evoArrowHtml(detail, candyCost = null) {
+  const label = candyCost !== null ? `${candyCost} 🍬` : formatEvoCondition(detail);
   return `
     <div class="evo-arrow">
-      <span class="evo-condition">${formatEvoCondition(detail)}</span>
+      <span class="evo-condition">${label}</span>
       <span class="evo-arrow-symbol">→</span>
     </div>
   `;
@@ -601,6 +616,14 @@ function formatEvoCondition(detail) {
 function getGoEntry(id, name) {
   return State.goByDex[id]
       ?? State.goByName[name.toUpperCase().replace(/-/g, '_')];
+}
+
+function getGoCandyCost(goEntry, targetSpeciesName) {
+  const branches = goEntry?.evolution?.futureBranches;
+  if (!branches) return null;
+  const targetId = targetSpeciesName.toUpperCase().replace(/-/g, '_');
+  const branch = branches.find(b => b.id === targetId);
+  return branch?.costToEvolve?.candyCost ?? null;
 }
 
 function getBestMoveset(quickMoves, cinematicMoves) {
