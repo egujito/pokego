@@ -763,6 +763,15 @@ img {
   flex-shrink: 0;
 }
 
+.elite-badge {
+  font-size: 0.3rem;
+  background: #6a0dad;
+  color: #fff;
+  padding: 1px 4px;
+  border-radius: 2px;
+  flex-shrink: 0;
+}
+
 .go-move-name {
   font-size: 0.42rem;
   flex: 1;

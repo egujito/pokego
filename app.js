@@ -9,7 +9,10 @@ const SPRITE_BASE = 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sp
 
 const GO_BASE         = 'https://raw.githubusercontent.com/pokemongo-dev-contrib/pokemongo-json-pokedex/master/output';
 const GO_POKEMON_URL  = `${GO_BASE}/pokemon.json`;
-const GO_MOVES_URL    = `${GO_BASE}/move.json`;
+
+const PVPOKE_BASE         = 'https://raw.githubusercontent.com/pvpoke/pvpoke/master/src/data/gamemaster';
+const PVPOKE_POKEMON_URL  = `${PVPOKE_BASE}/pokemon.json`;
+const PVPOKE_MOVES_URL    = `${PVPOKE_BASE}/moves.json`;
 
 const GRID_PAGE_SIZE = 96;
 
@@ -64,37 +67,69 @@ async function apiFetch(url) {
 async function fetchGoData() {
   const cached = Cache.get('go-processed');
   if (cached) {
-    State.goByDex    = cached.goByDex;
-    State.goByName   = cached.goByName;
+    State.goByDex     = cached.goByDex;
+    State.goByName    = cached.goByName;
     State.goMoveStats = cached.goMoveStats;
     return;
   }
 
-  const [pokeArr, moveArr] = await Promise.all([
-    fetch(GO_POKEMON_URL).then(r => r.json()),
-    fetch(GO_MOVES_URL).then(r => r.json()),
+  const [goPokeArr, pvPokemon, pvMoves] = await Promise.all([
+    fetch(GO_POKEMON_URL).then(r => r.json()),      // evolution data
+    fetch(PVPOKE_POKEMON_URL).then(r => r.json()),  // full move pool
+    fetch(PVPOKE_MOVES_URL).then(r => r.json()),    // move stats
   ]);
 
   const goMoveStats = {};
-  for (const move of moveArr) {
-    if (!move.id) continue;
-    goMoveStats[move.id] = {
-      type:        (move.type ?? '').toLowerCase(),
-      power:       move.power       ?? 0,
-      durationMs:  move.durationMs  ?? 1000,
-      energyDelta: move.energyDelta ?? 0,
+  for (const move of pvMoves) {
+    if (!move.moveId) continue;
+    goMoveStats[move.moveId] = {
+      name:        move.name,
+      type:        move.type ?? '',
+      power:       move.power      ?? 0,
+      durationMs:  move.cooldown   ?? 1000,
+      energyDelta: (move.energyGain > 0) ? move.energyGain : -(move.energy ?? 0),
     };
   }
 
   const goByDex  = {};
   const goByName = {};
-  for (const poke of pokeArr) {
-    if (poke.dex)  goByDex[poke.dex]   = poke;
-    if (poke.id)   goByName[poke.id]   = poke;
+  for (const entry of pvPokemon) {
+    if (!entry.dex) continue;
+    const goId = entry.speciesId.toUpperCase().replace(/-/g, '_');
+    const obj = {
+      dex:  entry.dex,
+      id:   goId,
+      name: entry.speciesName,
+      stats: {
+        baseAttack:   entry.baseStats.atk,
+        baseDefense:  entry.baseStats.def,
+        baseStamina:  entry.baseStats.hp,
+      },
+      quickMoves: (entry.fastMoves ?? []).map(id => ({
+        id,
+        name:   goMoveStats[id]?.name ?? id.replace(/_/g, ' '),
+        legacy: entry.eliteMoves?.includes(id) ?? false,
+      })),
+      cinematicMoves: (entry.chargedMoves ?? []).map(id => ({
+        id,
+        name:   goMoveStats[id]?.name ?? id.replace(/_/g, ' '),
+        legacy: entry.eliteMoves?.includes(id) ?? false,
+      })),
+      evolution: null,
+    };
+    goByDex[entry.dex] = obj;
+    goByName[goId]     = obj;
   }
 
-  State.goByDex    = goByDex;
-  State.goByName   = goByName;
+  // Merge evolution data from pokemongo-dev-contrib
+  for (const poke of goPokeArr) {
+    if (poke.dex && goByDex[poke.dex]) {
+      goByDex[poke.dex].evolution = poke.evolution ?? null;
+    }
+  }
+
+  State.goByDex     = goByDex;
+  State.goByName    = goByName;
   State.goMoveStats = goMoveStats;
 
   Cache.set('go-processed', { goByDex, goByName, goMoveStats });
@@ -529,17 +564,25 @@ function renderEffectiveness(eff) {
 function renderEvolutionChain(rootNode) {
   if (rootNode.evolves_to.length > 1) {
     // Branching: each branch gets its own row
-    return rootNode.evolves_to.map(child => `
-      <div class="evo-branch">
-        ${evoStageHtml(rootNode.species)}
-        ${evoArrowHtml(child.evolution_details[0])}
-        ${evoStageHtml(child.species)}
-        ${child.evolves_to.map(grand => `
-          ${evoArrowHtml(grand.evolution_details[0])}
-          ${evoStageHtml(grand.species)}
-        `).join('')}
-      </div>
-    `).join('');
+    return rootNode.evolves_to.map(child => {
+      const srcGoEntry = getGoEntry(idFromUrl(rootNode.species.url), rootNode.species.name);
+      const candyCost  = getGoCandyCost(srcGoEntry, child.species.name);
+      return `
+        <div class="evo-branch">
+          ${evoStageHtml(rootNode.species)}
+          ${evoArrowHtml(child.evolution_details[0], candyCost)}
+          ${evoStageHtml(child.species)}
+          ${child.evolves_to.map(grand => {
+            const midGoEntry  = getGoEntry(idFromUrl(child.species.url), child.species.name);
+            const grandCost   = getGoCandyCost(midGoEntry, grand.species.name);
+            return `
+              ${evoArrowHtml(grand.evolution_details[0], grandCost)}
+              ${evoStageHtml(grand.species)}
+            `;
+          }).join('')}
+        </div>
+      `;
+    }).join('');
   }
 
   // Linear chain
@@ -550,10 +593,16 @@ function renderEvolutionChain(rootNode) {
     node = node.evolves_to[0] ?? null;
   }
 
-  return segments.map((node, i) => `
-    ${i > 0 ? evoArrowHtml(node.evolution_details[0]) : ''}
-    ${evoStageHtml(node.species)}
-  `).join('');
+  return segments.map((node, i) => {
+    if (i === 0) return evoStageHtml(node.species);
+    const prev       = segments[i - 1];
+    const srcGoEntry = getGoEntry(idFromUrl(prev.species.url), prev.species.name);
+    const candyCost  = getGoCandyCost(srcGoEntry, node.species.name);
+    return `
+      ${evoArrowHtml(node.evolution_details[0], candyCost)}
+      ${evoStageHtml(node.species)}
+    `;
+  }).join('');
 }
 
 function evoStageHtml(species) {
@@ -566,10 +615,11 @@ function evoStageHtml(species) {
   `;
 }
 
-function evoArrowHtml(detail) {
+function evoArrowHtml(detail, candyCost = null) {
+  const label = candyCost !== null ? `${candyCost} 🍬` : formatEvoCondition(detail);
   return `
     <div class="evo-arrow">
-      <span class="evo-condition">${formatEvoCondition(detail)}</span>
+      <span class="evo-condition">${label}</span>
       <span class="evo-arrow-symbol">→</span>
     </div>
   `;
@@ -603,22 +653,37 @@ function getGoEntry(id, name) {
       ?? State.goByName[name.toUpperCase().replace(/-/g, '_')];
 }
 
+function getGoCandyCost(goEntry, targetSpeciesName) {
+  const branches = goEntry?.evolution?.futureBranches;
+  if (!branches) return null;
+  const targetId = targetSpeciesName.toUpperCase().replace(/-/g, '_');
+  const branch = branches.find(b => b.id === targetId);
+  return branch?.costToEvolve?.candyCost ?? null;
+}
+
 function getBestMoveset(quickMoves, cinematicMoves) {
-  const fastScore   = id => {
-    const s = State.goMoveStats[id];
-    return s ? s.power / (s.durationMs / 1000) : 0;
-  };
-  const chargeScore = id => {
-    const s = State.goMoveStats[id];
-    return s ? s.power / Math.max(Math.abs(s.energyDelta), 1) : 0;
-  };
+  let bestFastId = null, bestChargeId = null, bestCycleDps = -1;
 
-  const bestFast   = quickMoves?.reduce((a, b) =>
-    fastScore(a.id) >= fastScore(b.id) ? a : b, quickMoves[0]);
-  const bestCharge = cinematicMoves?.reduce((a, b) =>
-    chargeScore(a.id) >= chargeScore(b.id) ? a : b, cinematicMoves[0]);
+  for (const fast of (quickMoves ?? [])) {
+    const fs = State.goMoveStats[fast.id];
+    if (!fs || fs.energyDelta <= 0) continue;
+    for (const charge of (cinematicMoves ?? [])) {
+      const cs = State.goMoveStats[charge.id];
+      if (!cs || cs.energyDelta >= 0) continue;
+      const n        = Math.ceil(Math.abs(cs.energyDelta) / fs.energyDelta);
+      const cycleDps = (n * fs.power + cs.power) / ((n * fs.durationMs) / 1000);
+      if (cycleDps > bestCycleDps) {
+        bestCycleDps = cycleDps;
+        bestFastId   = fast.id;
+        bestChargeId = charge.id;
+      }
+    }
+  }
 
-  return { bestFastId: bestFast?.id, bestChargeId: bestCharge?.id };
+  if (!bestFastId   && quickMoves?.length)     bestFastId   = quickMoves[0].id;
+  if (!bestChargeId && cinematicMoves?.length) bestChargeId = cinematicMoves[0].id;
+
+  return { bestFastId, bestChargeId };
 }
 
 function renderGoMoves(pokemonId, pokemonName) {
@@ -638,15 +703,12 @@ function renderGoMoves(pokemonId, pokemonName) {
 
     let metricLabel = '';
     let metricVal   = '';
-    if (stats.durationMs && stats.power) {
-      const dps = (stats.power / (stats.durationMs / 1000)).toFixed(1);
+    if (stats.energyDelta > 0 && stats.durationMs && stats.power) {
       metricLabel = 'DPS';
-      metricVal   = dps;
-    }
-    if (!metricVal && stats.energyDelta && stats.power) {
-      const dpe = (stats.power / Math.max(Math.abs(stats.energyDelta), 1)).toFixed(1);
+      metricVal   = (stats.power / (stats.durationMs / 1000)).toFixed(1);
+    } else if (stats.energyDelta < 0 && stats.power) {
       metricLabel = 'DPE';
-      metricVal   = dpe;
+      metricVal   = (stats.power / Math.abs(stats.energyDelta)).toFixed(1);
     }
 
     return `
@@ -654,6 +716,7 @@ function renderGoMoves(pokemonId, pokemonName) {
         ${isBest ? '<span class="best-badge">★</span>' : '<span class="best-badge-placeholder"></span>'}
         <span class="go-move-name">${move.name}</span>
         ${type ? typeBadge(type) : ''}
+        ${move.legacy ? '<span class="elite-badge">ELITE</span>' : ''}
         <span class="go-move-power">${power !== '—' ? `PWR ${power}` : ''}</span>
         ${metricVal ? `<span class="go-move-metric">${metricLabel} ${metricVal}</span>` : ''}
       </div>
